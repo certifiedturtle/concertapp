@@ -237,6 +237,37 @@ struct ConcertDetailView: View {
         }
     }
     
+    private func searchForSetlist() {
+        // Build search query with available information only
+        var searchComponents: [String] = ["setlist"]
+        
+        // Add artist name (always available via primaryArtistName)
+        searchComponents.append(concert.primaryArtistName)
+        
+        // Add venue name if it's not empty or default
+        let venueName = concert.wrappedVenueName
+        if !venueName.isEmpty && venueName != "Unknown Venue" {
+            searchComponents.append(venueName)
+        }
+        
+        // Add date if available - format as readable date
+        if let date = concert.date {
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "MMMM yyyy" // e.g., "August 2015"
+            let dateString = dateFormatter.string(from: date)
+            searchComponents.append(dateString)
+        }
+        
+        // Combine into search query
+        let searchQuery = searchComponents.joined(separator: " ")
+        
+        // URL encode and create Google search URL
+        if let encodedQuery = searchQuery.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+           let url = URL(string: "https://www.google.com/search?q=\(encodedQuery)") {
+            UIApplication.shared.open(url)
+        }
+    }
+    
     private func checkPhotoLibraryPermission() {
         let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
         photoAuthorizationStatus = status
