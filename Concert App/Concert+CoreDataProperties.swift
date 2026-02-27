@@ -16,6 +16,7 @@ extension Concert {
     
     @NSManaged public var id: UUID?
     @NSManaged public var date: Date?
+    @NSManaged public var dateGranularity: String?
     @NSManaged public var venueName: String?
     @NSManaged public var city: String?
     @NSManaged public var state: String?
@@ -33,6 +34,10 @@ extension Concert {
     
     public var wrappedDate: Date {
         date ?? Date()
+    }
+    
+    public var wrappedDateGranularity: String {
+        dateGranularity ?? "full" // Default for existing concerts
     }
     
     public var wrappedVenueName: String {
@@ -84,9 +89,25 @@ extension Concert {
     }
     
     public var displayDate: String {
+        guard let date = date else { return "Date Unknown" }
+        
         let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        return formatter.string(from: wrappedDate)
+        switch wrappedDateGranularity {
+        case "full":
+            formatter.dateStyle = .medium
+            return formatter.string(from: date) // "Feb 27, 2026"
+        case "month":
+            formatter.dateFormat = "MMMM yyyy"
+            return formatter.string(from: date) // "February 2026"
+        case "year":
+            formatter.dateFormat = "yyyy"
+            return formatter.string(from: date) // "2026"
+        case "unknown":
+            return "Date Unknown"
+        default:
+            formatter.dateStyle = .medium
+            return formatter.string(from: date)
+        }
     }
 }
 

@@ -41,6 +41,14 @@ struct SettingsView: View {
                     }
                 }
                 
+                Section("Developer & Testing") {
+                    NavigationLink {
+                        DiagnosticView()
+                    } label: {
+                        Label("Diagnostics & Data Tools", systemImage: "wrench.and.screwdriver")
+                    }
+                }
+                
                 Section("About") {
                     HStack {
                         Text("Version")

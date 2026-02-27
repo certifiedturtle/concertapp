@@ -23,6 +23,7 @@ class ConcertViewModel: ObservableObject {
     
     func createConcert(
         date: Date,
+        dateGranularity: String,
         venueName: String,
         city: String,
         state: String,
@@ -35,6 +36,7 @@ class ConcertViewModel: ObservableObject {
         let concert = Concert(context: viewContext)
         concert.id = UUID()
         concert.date = date
+        concert.dateGranularity = dateGranularity
         concert.venueName = venueName
         concert.city = city
         concert.state = state
@@ -60,6 +62,7 @@ class ConcertViewModel: ObservableObject {
     func updateConcert(
         _ concert: Concert,
         date: Date,
+        dateGranularity: String,
         venueName: String,
         city: String,
         state: String,
@@ -70,6 +73,7 @@ class ConcertViewModel: ObservableObject {
         artists: [(name: String, isHeadliner: Bool)]
     ) throws {
         concert.date = date
+        concert.dateGranularity = dateGranularity
         concert.venueName = venueName
         concert.city = city
         concert.state = state

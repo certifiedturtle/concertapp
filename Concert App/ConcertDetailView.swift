@@ -13,14 +13,13 @@ struct ConcertDetailView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @ObservedObject var concert: Concert
     
-    @StateObject private var viewModel = ConcertViewModel()
-    
     @State private var showingEditSheet = false
     @State private var showingPhotoPicker = false
-    @State private var selectedPhotos: [PhotosPickerItem] = []
     @State private var showingFullScreenPhoto: ConcertPhoto?
     @State private var showingPhotoPermissionAlert = false
     @State private var photoAuthorizationStatus: PHAuthorizationStatus = .notDetermined
+    @State private var showingErrorAlert = false
+    @State private var errorMessage = ""
     
     var body: some View {
         ScrollView {
@@ -140,6 +139,23 @@ struct ConcertDetailView: View {
                         .foregroundStyle(.blue)
                     }
                     .padding(.horizontal)
+                } else {
+                    // Show search button when no setlist URL exists
+                    Divider()
+                    
+                    Button {
+                        searchForSetlist()
+                    } label: {
+                        HStack {
+                            Label("Search for Setlist", systemImage: "magnifyingglass")
+                            Spacer()
+                            Image(systemName: "safari")
+                                .font(.caption)
+                        }
+                        .font(.headline)
+                        .foregroundStyle(.blue)
+                    }
+                    .padding(.horizontal)
                 }
                 
                 // Photos
@@ -191,9 +207,19 @@ struct ConcertDetailView: View {
                 .environment(\.managedObjectContext, viewContext)
         }
         .fullScreenCover(item: $showingFullScreenPhoto) { photo in
-            FullScreenPhotoGalleryView(photos: concert.photosArray, selectedPhoto: photo)
+            FullScreenPhotoGalleryView(
+                photos: concert.photosArray,
+                selectedPhoto: photo,
+                onDelete: { photoToDelete in
+                    deletePhoto(photoToDelete)
+                }
+            )
         }
-        .photosPicker(isPresented: $showingPhotoPicker, selection: $selectedPhotos, matching: .any(of: [.images, .videos]))
+        .sheet(isPresented: $showingPhotoPicker) {
+            PhotoPickerView { assets in
+                addPhotos(assets)
+            }
+        }
         .alert("Photo Access Required", isPresented: $showingPhotoPermissionAlert) {
             Button("Open Settings") {
                 if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
@@ -204,10 +230,10 @@ struct ConcertDetailView: View {
         } message: {
             Text("This app needs access to your photo library to add photos to concerts. Please enable photo access in Settings.")
         }
-        .onChange(of: selectedPhotos) { oldValue, newValue in
-            Task {
-                await loadPhotos(newValue)
-            }
+        .alert("Error", isPresented: $showingErrorAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(errorMessage)
         }
     }
     
@@ -239,67 +265,147 @@ struct ConcertDetailView: View {
         }
     }
     
-    private func loadPhotos(_ items: [PhotosPickerItem]) async {
-        for item in items {
+    private func addPhotos(_ assets: [PHAsset]) {
+        print("\n🎬 Adding \(assets.count) photo(s)...")
+        var successCount = 0
+        var failCount = 0
+        
+        for (index, asset) in assets.enumerated() {
             do {
-                // Try to load as a photo asset reference
-                if let photoAsset = try await loadPhotoAsset(from: item) {
-                    try viewModel.addPhoto(to: concert, asset: photoAsset)
-                    print("✅ Added photo: \(photoAsset.localIdentifier)")
+                print("📸 Processing photo \(index + 1): \(asset.localIdentifier)")
+                
+                // Check if this photo is already added to avoid duplicates
+                let existingPhotoIds = concert.photosArray.map { $0.wrappedPhotoIdentifier }
+                if !existingPhotoIds.contains(asset.localIdentifier) {
+                    try addPhoto(to: concert, asset: asset)
+                    print("✅ Added photo \(index + 1)")
+                    successCount += 1
+                } else {
+                    print("⚠️ Photo \(index + 1) already exists, skipping")
                 }
             } catch {
-                print("❌ Error loading photo: \(error)")
-            }
-        }
-        selectedPhotos = []
-    }
-    
-    private func loadPhotoAsset(from item: PhotosPickerItem) async throws -> PHAsset? {
-        // Method 1: Try to get identifier directly (works in some cases)
-        if let identifier = item.itemIdentifier {
-            let fetchResult = PHAsset.fetchAssets(withLocalIdentifiers: [identifier], options: nil)
-            if let asset = fetchResult.firstObject {
-                print("✅ Found asset using itemIdentifier")
-                return asset
+                print("❌ Error saving photo \(index + 1): \(error)")
+                failCount += 1
             }
         }
         
-        // Method 2: Try to find the asset by comparing image data
-        // This searches through recent photos to find a match without creating duplicates
-        if try await item.loadTransferable(type: Data.self) != nil {
-            // Try to find an existing asset with matching creation date
-            // PhotosPicker items from the library should match recent photos
-            let fetchOptions = PHFetchOptions()
-            fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
-            fetchOptions.fetchLimit = 100 // Search recent photos
+        print("\n✨ Finished: \(successCount) added, \(failCount) failed")
+        
+        // Show error if all failed
+        if failCount > 0 && successCount == 0 {
+            errorMessage = "Could not add photos. Error: \(failCount) photos failed to save."
+            showingErrorAlert = true
+        }
+        
+        // Force view refresh
+        viewContext.refreshAllObjects()
+    }
+    
+    private func addPhoto(to concert: Concert, asset: PHAsset) throws {
+        let photo = ConcertPhoto(context: viewContext)
+        photo.id = UUID()
+        photo.photoIdentifier = asset.localIdentifier
+        photo.dateAdded = Date()
+        photo.isVideo = asset.mediaType == .video
+        
+        // Use the inverse relationship method
+        concert.addToPhotos(photo)
+        
+        try viewContext.save()
+        print("💾 Saved photo to Core Data")
+    }
+    
+    private func deletePhoto(_ photo: ConcertPhoto) {
+        print("🗑️ Deleting photo reference: \(photo.wrappedPhotoIdentifier)")
+        
+        // Remove from concert relationship
+        concert.removeFromPhotos(photo)
+        
+        // Delete from Core Data
+        viewContext.delete(photo)
+        
+        do {
+            try viewContext.save()
+            print("✅ Photo reference deleted successfully")
+            print("   Photo count is now: \(concert.photosArray.count)")
             
-            let allPhotos = PHAsset.fetchAssets(with: .image, options: fetchOptions)
+            // Force view refresh
+            viewContext.refreshAllObjects()
+        } catch {
+            print("❌ Error deleting photo: \(error)")
+            errorMessage = "Could not delete photo. Please try again."
+            showingErrorAlert = true
+        }
+    }
+}
+
+// MARK: - Photo Picker Wrapper
+
+struct PhotoPickerView: UIViewControllerRepresentable {
+    let onPhotosSelected: ([PHAsset]) -> Void
+    @Environment(\.dismiss) private var dismiss
+    
+    func makeUIViewController(context: Context) -> PHPickerViewController {
+        var configuration = PHPickerConfiguration(photoLibrary: .shared())
+        configuration.selectionLimit = 0 // 0 = unlimited
+        configuration.filter = .any(of: [.images, .videos])
+        
+        let picker = PHPickerViewController(configuration: configuration)
+        picker.delegate = context.coordinator
+        return picker
+    }
+    
+    func updateUIViewController(_ uiViewController: PHPickerViewController, context: Context) {
+        // No updates needed
+    }
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
+    class Coordinator: NSObject, PHPickerViewControllerDelegate {
+        let parent: PhotoPickerView
+        
+        init(_ parent: PhotoPickerView) {
+            self.parent = parent
+        }
+        
+        func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+            picker.dismiss(animated: true)
             
-            // For videos, check video assets too
-            if item.supportedContentTypes.contains(where: { $0.identifier.contains("video") }) {
-                let videoFetchOptions = PHFetchOptions()
-                videoFetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
-                videoFetchOptions.fetchLimit = 100
-                let allVideos = PHAsset.fetchAssets(with: .video, options: videoFetchOptions)
-                
-                if allVideos.count > 0, let firstVideo = allVideos.firstObject {
-                    print("✅ Found video asset from recent videos")
-                    return firstVideo
+            guard !results.isEmpty else {
+                print("📷 Photo picker cancelled")
+                return
+            }
+            
+            print("📷 Selected \(results.count) items from picker")
+            
+            // Extract asset identifiers from results
+            var assets: [PHAsset] = []
+            
+            for result in results {
+                // Get the asset identifier
+                if let assetIdentifier = result.assetIdentifier {
+                    print("   Found asset ID: \(assetIdentifier)")
+                    let fetchResult = PHAsset.fetchAssets(withLocalIdentifiers: [assetIdentifier], options: nil)
+                    if let asset = fetchResult.firstObject {
+                        assets.append(asset)
+                        print("   ✅ Loaded asset: \(asset.mediaType == .image ? "image" : "video"), \(asset.pixelWidth)x\(asset.pixelHeight)")
+                    } else {
+                        print("   ⚠️ Could not fetch asset for identifier")
+                    }
+                } else {
+                    print("   ⚠️ Result has no asset identifier")
                 }
             }
             
-            // Return the most recent matching asset if found
-            if allPhotos.count > 0, let asset = allPhotos.firstObject {
-                print("✅ Found asset from recent photos")
-                return asset
-            }
-            
-            print("⚠️ Could not find existing asset - photo may be from outside the library")
+            print("📷 Successfully loaded \(assets.count) of \(results.count) assets")
+            parent.onPhotosSelected(assets)
         }
-        
-        return nil
     }
 }
+
+// MARK: - Flow Layout
 
 // Simple flow layout for tags
 struct FlowLayout: Layout {

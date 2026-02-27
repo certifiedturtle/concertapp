@@ -12,6 +12,9 @@
 		7C8B59452F51645D0040C01C /* SimplifiedAppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C8B59442F51645D0040C01C /* SimplifiedAppView.swift */; };
 		7C8B59472F5166260040C01C /* fix_project.sh in Resources */ = {isa = PBXBuildFile; fileRef = 7C8B59462F5166260040C01C /* fix_project.sh */; };
 		7C8B59492F51663A0040C01C /* FINAL_FIX_INSTRUCTIONS.md in Resources */ = {isa = PBXBuildFile; fileRef = 7C8B59482F51663A0040C01C /* FINAL_FIX_INSTRUCTIONS.md */; };
+		7CDB16AA2F520EAF002AD428 /* TESTING_GUIDE.md in Resources */ = {isa = PBXBuildFile; fileRef = 7CDB16A92F520EAF002AD428 /* TESTING_GUIDE.md */; };
+		7CDB16B22F5218EB002AD428 /* SEARCH_SETLIST_FEATURE.md in Resources */ = {isa = PBXBuildFile; fileRef = 7CDB16B12F5218EB002AD428 /* SEARCH_SETLIST_FEATURE.md */; };
+		7CDB16B42F521EEA002AD428 /* FLEXIBLE_DATE_IMPLEMENTATION.md in Resources */ = {isa = PBXBuildFile; fileRef = 7CDB16B32F521EEA002AD428 /* FLEXIBLE_DATE_IMPLEMENTATION.md */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -22,6 +25,9 @@
 		7C8B59442F51645D0040C01C /* SimplifiedAppView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimplifiedAppView.swift; sourceTree = "<group>"; };
 		7C8B59462F5166260040C01C /* fix_project.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = fix_project.sh; sourceTree = "<group>"; };
 		7C8B59482F51663A0040C01C /* FINAL_FIX_INSTRUCTIONS.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = FINAL_FIX_INSTRUCTIONS.md; sourceTree = "<group>"; };
+		7CDB16A92F520EAF002AD428 /* TESTING_GUIDE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = TESTING_GUIDE.md; sourceTree = "<group>"; };
+		7CDB16B12F5218EB002AD428 /* SEARCH_SETLIST_FEATURE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = SEARCH_SETLIST_FEATURE.md; sourceTree = "<group>"; };
+		7CDB16B32F521EEA002AD428 /* FLEXIBLE_DATE_IMPLEMENTATION.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = FLEXIBLE_DATE_IMPLEMENTATION.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -54,6 +60,9 @@
 				7C8B59462F5166260040C01C /* fix_project.sh */,
 				7C8B59482F51663A0040C01C /* FINAL_FIX_INSTRUCTIONS.md */,
 				7C1C86EC2F516E1E00B482CE /* Info.plist */,
+				7CDB16A92F520EAF002AD428 /* TESTING_GUIDE.md */,
+				7CDB16B12F5218EB002AD428 /* SEARCH_SETLIST_FEATURE.md */,
+				7CDB16B32F521EEA002AD428 /* FLEXIBLE_DATE_IMPLEMENTATION.md */,
 			);
 			sourceTree = "<group>";
 		};
@@ -129,6 +138,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7CDB16B42F521EEA002AD428 /* FLEXIBLE_DATE_IMPLEMENTATION.md in Resources */,
+				7CDB16AA2F520EAF002AD428 /* TESTING_GUIDE.md in Resources */,
+				7CDB16B22F5218EB002AD428 /* SEARCH_SETLIST_FEATURE.md in Resources */,
 				7C8B59472F5166260040C01C /* fix_project.sh in Resources */,
 				7C8B59492F51663A0040C01C /* FINAL_FIX_INSTRUCTIONS.md in Resources */,
 			);

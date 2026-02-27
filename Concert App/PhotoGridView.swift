@@ -14,14 +14,16 @@ struct PhotoGridView: View {
     let onTap: (ConcertPhoto) -> Void
     
     let columns = [
-        GridItem(.adaptive(minimum: 100), spacing: 4)
+        GridItem(.adaptive(minimum: 100, maximum: 150), spacing: 4)
     ]
     
     var body: some View {
         LazyVGrid(columns: columns, spacing: 4) {
             ForEach(photos) { photo in
                 PhotoThumbnailView(photo: photo)
+                    .frame(minHeight: 100, maxHeight: 150)
                     .aspectRatio(1, contentMode: .fill)
+                    .clipped()
                     .clipShape(RoundedRectangle(cornerRadius: 8))
                     .onTapGesture {
                         onTap(photo)
@@ -36,29 +38,33 @@ struct PhotoThumbnailView: View {
     @State private var image: UIImage?
     
     var body: some View {
-        ZStack {
-            if let image = image {
-                Image(uiImage: image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-            } else {
-                Color.gray.opacity(0.3)
-                ProgressView()
-            }
-            
-            if photo.isVideo {
-                VStack {
-                    Spacer()
-                    HStack {
+        GeometryReader { geometry in
+            ZStack {
+                if let image = image {
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: geometry.size.width, height: geometry.size.height)
+                } else {
+                    Color.gray.opacity(0.3)
+                    ProgressView()
+                }
+                
+                if photo.isVideo {
+                    VStack {
                         Spacer()
-                        Image(systemName: "play.circle.fill")
-                            .font(.title2)
-                            .foregroundStyle(.white)
-                            .shadow(radius: 2)
-                            .padding(8)
+                        HStack {
+                            Spacer()
+                            Image(systemName: "play.circle.fill")
+                                .font(.title2)
+                                .foregroundStyle(.white)
+                                .shadow(radius: 2)
+                                .padding(8)
+                        }
                     }
                 }
             }
+            .frame(width: geometry.size.width, height: geometry.size.height)
         }
         .onAppear {
             loadImage()
@@ -156,8 +162,10 @@ struct FullScreenPhotoGalleryView: View {
     @Environment(\.dismiss) private var dismiss
     let photos: [ConcertPhoto]
     let selectedPhoto: ConcertPhoto
+    let onDelete: ((ConcertPhoto) -> Void)?
     
     @State private var currentIndex: Int = 0
+    @State private var showingDeleteConfirmation = false
     
     var body: some View {
         ZStack {
@@ -173,7 +181,22 @@ struct FullScreenPhotoGalleryView: View {
             
             VStack {
                 HStack {
+                    // Delete button
+                    if onDelete != nil {
+                        Button(role: .destructive) {
+                            showingDeleteConfirmation = true
+                        } label: {
+                            Image(systemName: "trash.circle.fill")
+                                .font(.title)
+                                .foregroundStyle(.red)
+                                .shadow(radius: 3)
+                                .padding()
+                        }
+                    }
+                    
                     Spacer()
+                    
+                    // Close button
                     Button {
                         dismiss()
                     } label: {
@@ -205,6 +228,28 @@ struct FullScreenPhotoGalleryView: View {
                 currentIndex = index
             }
         }
+        .alert("Delete Photo?", isPresented: $showingDeleteConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete", role: .destructive) {
+                deleteCurrentPhoto()
+            }
+        } message: {
+            Text("This will remove the photo from this concert. Your photo library will not be affected.")
+        }
+    }
+    
+    private func deleteCurrentPhoto() {
+        guard currentIndex < photos.count else { return }
+        let photoToDelete = photos[currentIndex]
+        
+        print("🗑️ User confirmed deletion of photo at index \(currentIndex)")
+        
+        // Call the deletion callback
+        onDelete?(photoToDelete)
+        
+        // Always dismiss back to concert details after deletion
+        print("   Returning to concert details")
+        dismiss()
     }
 }
 

@@ -17,6 +17,9 @@ struct AddEditConcertView: View {
     let concert: Concert?
     
     @State private var date = Date()
+    @State private var dateGranularity = "full" // "full", "month", "year"
+    @State private var selectedYear = Calendar.current.component(.year, from: Date())
+    @State private var selectedMonth = Calendar.current.component(.month, from: Date())
     @State private var venueName = ""
     @State private var city = ""
     @State private var state = ""
@@ -76,7 +79,41 @@ struct AddEditConcertView: View {
                 }
                 
                 Section("Details") {
-                    DatePicker("Date", selection: $date, displayedComponents: .date)
+                    // Date Granularity Picker
+                    Picker("Date Precision", selection: $dateGranularity) {
+                        Text("Exact Date").tag("full")
+                        Text("Month & Year").tag("month")
+                        Text("Year Only").tag("year")
+                    }
+                    .pickerStyle(.segmented)
+                    
+                    // Show appropriate date input based on granularity
+                    switch dateGranularity {
+                    case "full":
+                        DatePicker("Date", selection: $date, displayedComponents: .date)
+                    case "month":
+                        HStack {
+                            Picker("Month", selection: $selectedMonth) {
+                                ForEach(1...12, id: \.self) { month in
+                                    Text(monthName(for: month)).tag(month)
+                                }
+                            }
+                            Picker("Year", selection: $selectedYear) {
+                                ForEach((1960...2030).reversed(), id: \.self) { year in
+                                    Text(String(year)).tag(year)
+                                }
+                            }
+                        }
+                    case "year":
+                        Picker("Year", selection: $selectedYear) {
+                            ForEach((1960...2030).reversed(), id: \.self) { year in
+                                Text(String(year)).tag(year)
+                            }
+                        }
+                        .pickerStyle(.wheel)
+                    default:
+                        EmptyView()
+                    }
                     
                     TextField("Venue Name", text: $venueName)
                     
@@ -90,6 +127,21 @@ struct AddEditConcertView: View {
                     TextField("Setlist URL", text: $setlistURL)
                         .keyboardType(.URL)
                         .textInputAutocapitalization(.never)
+                    
+                    // Show search button if setlist URL is empty
+                    if setlistURL.isEmpty {
+                        Button {
+                            searchForSetlist()
+                        } label: {
+                            HStack {
+                                Image(systemName: "magnifyingglass")
+                                Text("Search for Setlist")
+                                Spacer()
+                                Image(systemName: "safari")
+                                    .font(.caption)
+                            }
+                        }
+                    }
                     
                     TextField("Friends (comma separated)", text: $friendsTags)
                     
@@ -128,10 +180,22 @@ struct AddEditConcertView: View {
         !venueName.isEmpty && artists.contains(where: { !$0.name.isEmpty })
     }
     
+    private func monthName(for month: Int) -> String {
+        let formatter = DateFormatter()
+        return formatter.monthSymbols[month - 1]
+    }
+    
     private func loadConcertData() {
         guard let concert = concert else { return }
         
         date = concert.wrappedDate
+        dateGranularity = concert.wrappedDateGranularity
+        
+        // Extract year and month from date
+        let calendar = Calendar.current
+        selectedYear = calendar.component(.year, from: concert.wrappedDate)
+        selectedMonth = calendar.component(.month, from: concert.wrappedDate)
+        
         venueName = concert.wrappedVenueName
         city = concert.wrappedCity
         state = concert.wrappedState
@@ -148,10 +212,36 @@ struct AddEditConcertView: View {
         do {
             let filteredArtists = artists.filter { !$0.name.isEmpty }
             
+            // Construct date based on granularity
+            let finalDate: Date
+            let calendar = Calendar.current
+            
+            switch dateGranularity {
+            case "full":
+                finalDate = date
+            case "month":
+                // Create date as first day of selected month/year
+                var components = DateComponents()
+                components.year = selectedYear
+                components.month = selectedMonth
+                components.day = 1
+                finalDate = calendar.date(from: components) ?? date
+            case "year":
+                // Create date as January 1 of selected year
+                var components = DateComponents()
+                components.year = selectedYear
+                components.month = 1
+                components.day = 1
+                finalDate = calendar.date(from: components) ?? date
+            default:
+                finalDate = date
+            }
+            
             if let concert = concert {
                 try viewModel.updateConcert(
                     concert,
-                    date: date,
+                    date: finalDate,
+                    dateGranularity: dateGranularity,
                     venueName: venueName,
                     city: city,
                     state: state,
@@ -163,7 +253,8 @@ struct AddEditConcertView: View {
                 )
             } else {
                 try viewModel.createConcert(
-                    date: date,
+                    date: finalDate,
+                    dateGranularity: dateGranularity,
                     venueName: venueName,
                     city: city,
                     state: state,
@@ -179,6 +270,69 @@ struct AddEditConcertView: View {
         } catch {
             errorMessage = error.localizedDescription
             showingError = true
+        }
+    }
+    
+    private func searchForSetlist() {
+        // Build search query: "setlistfm [artist] [venue] [city, state] [date]"
+        
+        // Get primary artist (first headliner or first artist)
+        let primaryArtist: String
+        if let headliner = artists.first(where: { $0.isHeadliner && !$0.name.isEmpty }) {
+            primaryArtist = headliner.name
+        } else if let firstArtist = artists.first(where: { !$0.name.isEmpty }) {
+            primaryArtist = firstArtist.name
+        } else {
+            primaryArtist = "Unknown Artist"
+        }
+        
+        let venue = venueName.isEmpty ? "Unknown Venue" : venueName
+        
+        // Format date based on granularity
+        let dateString: String
+        let dateFormatter = DateFormatter()
+        let calendar = Calendar.current
+        
+        switch dateGranularity {
+        case "full":
+            dateFormatter.dateStyle = .long
+            dateString = dateFormatter.string(from: date)
+        case "month":
+            dateFormatter.dateFormat = "MMMM yyyy"
+            var components = DateComponents()
+            components.year = selectedYear
+            components.month = selectedMonth
+            components.day = 1
+            let tempDate = calendar.date(from: components) ?? date
+            dateString = dateFormatter.string(from: tempDate)
+        case "year":
+            dateString = String(selectedYear)
+        default:
+            dateFormatter.dateStyle = .long
+            dateString = dateFormatter.string(from: date)
+        }
+        
+        // Build query components
+        var queryComponents = ["setlistfm", primaryArtist, venue]
+        
+        // Add city and state if available
+        if !city.isEmpty && !state.isEmpty {
+            queryComponents.append("\(city), \(state)")
+        } else if !city.isEmpty {
+            queryComponents.append(city)
+        }
+        
+        queryComponents.append(dateString)
+        
+        let query = queryComponents.joined(separator: " ")
+        
+        // URL encode and open Safari with Google search
+        if let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+           let url = URL(string: "https://www.google.com/search?q=\(encodedQuery)") {
+            UIApplication.shared.open(url)
+            print("🔍 Searching for setlist: \(query)")
+        } else {
+            print("❌ Could not create search URL")
         }
     }
 }

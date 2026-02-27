@@ -83,4 +83,56 @@ struct PersistenceController {
         
         return controller
     }()
+    
+    // MARK: - Testing Utilities
+    
+    /// Clears all photo data from all concerts (for testing purposes)
+    func clearAllPhotos() throws {
+        let context = container.viewContext
+        let fetchRequest: NSFetchRequest<NSFetchRequestResult> = ConcertPhoto.fetchRequest()
+        let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+        
+        try context.execute(deleteRequest)
+        try context.save()
+        
+        print("✅ Cleared all photo data")
+    }
+    
+    /// Clears all data (concerts, artists, photos) - use with caution!
+    func clearAllData() throws {
+        let context = container.viewContext
+        
+        // Delete all photos
+        let photoFetchRequest: NSFetchRequest<NSFetchRequestResult> = ConcertPhoto.fetchRequest()
+        let photoDeleteRequest = NSBatchDeleteRequest(fetchRequest: photoFetchRequest)
+        try context.execute(photoDeleteRequest)
+        
+        // Delete all artists
+        let artistFetchRequest: NSFetchRequest<NSFetchRequestResult> = NSFetchRequest(entityName: "Artist")
+        let artistDeleteRequest = NSBatchDeleteRequest(fetchRequest: artistFetchRequest)
+        try context.execute(artistDeleteRequest)
+        
+        // Delete all concerts
+        let concertFetchRequest: NSFetchRequest<NSFetchRequestResult> = Concert.fetchRequest()
+        let concertDeleteRequest = NSBatchDeleteRequest(fetchRequest: concertFetchRequest)
+        try context.execute(concertDeleteRequest)
+        
+        try context.save()
+        
+        // Reset the context
+        context.reset()
+        
+        print("✅ Cleared all data (concerts, artists, photos)")
+    }
+    
+    /// Returns statistics about the current data
+    func getDataStats() -> (concerts: Int, artists: Int, photos: Int) {
+        let context = container.viewContext
+        
+        let concertCount = (try? context.count(for: Concert.fetchRequest())) ?? 0
+        let artistCount = (try? context.count(for: NSFetchRequest(entityName: "Artist"))) ?? 0
+        let photoCount = (try? context.count(for: ConcertPhoto.fetchRequest())) ?? 0
+        
+        return (concerts: concertCount, artists: artistCount, photos: photoCount)
+    }
 }
