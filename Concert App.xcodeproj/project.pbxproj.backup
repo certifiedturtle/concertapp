@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		7C8B593A2F5158A70040C01C /* ConcertApp.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 7C8B59382F5158A70040C01C /* ConcertApp.xcdatamodeld */; };
+		7C8B593A2F5158A70040C01C /* Concert App .xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 7C8B59382F5158A70040C01C /* Concert App .xcdatamodeld */; };
 		7C8B59432F51609B0040C01C /* ConcertApp.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 7C8B59412F51609B0040C01C /* ConcertApp.xcdatamodeld */; };
 		7C8B59452F51645D0040C01C /* SimplifiedAppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C8B59442F51645D0040C01C /* SimplifiedAppView.swift */; };
 		7C8B59472F5166260040C01C /* fix_project.sh in Resources */ = {isa = PBXBuildFile; fileRef = 7C8B59462F5166260040C01C /* fix_project.sh */; };
@@ -15,7 +15,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		7C1C86EC2F516E1E00B482CE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		7C8B59062F5154060040C01C /* Concert App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Concert App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7C8B59392F5158A70040C01C /* Concert App .xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Concert App .xcdatamodel"; sourceTree = "<group>"; };
 		7C8B59422F51609B0040C01C /* ConcertApp.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = ConcertApp.xcdatamodel; sourceTree = "<group>"; };
@@ -47,13 +46,12 @@
 			isa = PBXGroup;
 			children = (
 				7C8B59412F51609B0040C01C /* ConcertApp.xcdatamodeld */,
-				7C8B59382F5158A70040C01C /* ConcertApp.xcdatamodeld */,
+				7C8B59382F5158A70040C01C /* Concert App .xcdatamodeld */,
 				7C8B59082F5154060040C01C /* Concert App */,
 				7C8B59072F5154060040C01C /* Products */,
 				7C8B59442F51645D0040C01C /* SimplifiedAppView.swift */,
 				7C8B59462F5166260040C01C /* fix_project.sh */,
 				7C8B59482F51663A0040C01C /* FINAL_FIX_INSTRUCTIONS.md */,
-				7C1C86EC2F516E1E00B482CE /* Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -141,7 +139,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7C8B593A2F5158A70040C01C /* ConcertApp.xcdatamodeld in Sources */,
+				7C8B593A2F5158A70040C01C /* Concert App .xcdatamodeld in Sources */,
 				7C8B59452F51645D0040C01C /* SimplifiedAppView.swift in Sources */,
 				7C8B59432F51609B0040C01C /* ConcertApp.xcdatamodeld in Sources */,
 			);
@@ -281,9 +279,6 @@
 				DEVELOPMENT_TEAM = 459TC46MLY;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "Concert-App-Info.plist";
-				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "We need access to save photos to concerts";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "We need access to attach photos from your library to concerts";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -316,9 +311,6 @@
 				DEVELOPMENT_TEAM = 459TC46MLY;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "Concert-App-Info.plist";
-				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "We need access to save photos to concerts";
-				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "We need access to attach photos from your library to concerts";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -365,13 +357,13 @@
 /* End XCConfigurationList section */
 
 /* Begin XCVersionGroup section */
-		7C8B59382F5158A70040C01C /* ConcertApp.xcdatamodeld */ = {
+		7C8B59382F5158A70040C01C /* Concert App .xcdatamodeld */ = {
 			isa = XCVersionGroup;
 			children = (
 				7C8B59392F5158A70040C01C /* Concert App .xcdatamodel */,
 			);
 			currentVersion = 7C8B59392F5158A70040C01C /* Concert App .xcdatamodel */;
-			path = ConcertApp.xcdatamodeld;
+			path = "Concert App .xcdatamodeld";
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;
 		};

@@ -1,0 +1,117 @@
+//
+//  DiagnosticView.swift
+//  Concert App
+//
+//  Created by Michael Tempestini on 2/26/26.
+//
+
+import SwiftUI
+import CoreData
+
+/// Use this view to test if Core Data is set up correctly
+struct DiagnosticView: View {
+    @Environment(\.managedObjectContext) private var viewContext
+    
+    @State private var testResult = "Testing..."
+    @State private var testColor: Color = .blue
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            Image(systemName: testColor == .green ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                .font(.system(size: 60))
+                .foregroundStyle(testColor)
+            
+            Text("Core Data Diagnostic")
+                .font(.title)
+                .fontWeight(.bold)
+            
+            Text(testResult)
+                .font(.body)
+                .multilineTextAlignment(.center)
+                .padding()
+            
+            Button("Run Test") {
+                runDiagnostic()
+            }
+            .buttonStyle(.borderedProminent)
+        }
+        .padding()
+        .onAppear {
+            runDiagnostic()
+        }
+    }
+    
+    private func runDiagnostic() {
+        testResult = "Testing Core Data setup..."
+        testColor = .blue
+        
+        // Test 1: Check if context exists
+        guard viewContext.persistentStoreCoordinator != nil else {
+            testResult = "❌ Error: No persistent store coordinator found"
+            testColor = .red
+            return
+        }
+        
+        // Test 2: Try to create a Concert entity
+        do {
+            let concert = Concert(context: viewContext)
+            concert.id = UUID()
+            concert.date = Date()
+            concert.venueName = "Test Venue"
+            concert.city = "Test City"
+            concert.state = "NY"
+            concert.concertType = "standard"
+            
+            // Test 3: Try to create an Artist entity
+            let artist = Artist(context: viewContext)
+            artist.id = UUID()
+            artist.name = "Test Artist"
+            artist.isHeadliner = true
+            artist.concert = concert
+            
+            // Test 4: Try to save
+            try viewContext.save()
+            
+            // Test 5: Try to fetch
+            let fetchRequest: NSFetchRequest<Concert> = Concert.fetchRequest()
+            let results = try viewContext.fetch(fetchRequest)
+            
+            // Clean up test data
+            viewContext.delete(concert)
+            try viewContext.save()
+            
+            testResult = """
+            ✅ All Tests Passed!
+            
+            Core Data is working correctly.
+            Created \(results.count) test concert(s).
+            
+            Your app should work fine!
+            """
+            testColor = .green
+            
+        } catch let error as NSError {
+            testResult = """
+            ❌ Core Data Error:
+            
+            \(error.localizedDescription)
+            
+            Domain: \(error.domain)
+            Code: \(error.code)
+            
+            Check DEBUG_GUIDE.md for solutions.
+            """
+            testColor = .red
+        }
+    }
+}
+
+#Preview("With Context") {
+    DiagnosticView()
+        .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+}
+
+#Preview("Without Context - Will Fail") {
+    DiagnosticView()
+        .environment(\.managedObjectContext, NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType))
+}

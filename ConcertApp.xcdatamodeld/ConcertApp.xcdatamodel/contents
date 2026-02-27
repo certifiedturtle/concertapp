@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="24512" systemVersion="25D125" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
+    <entity name="Artist" representedClassName="Artist" syncable="YES">
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isHeadliner" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <relationship name="concert" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Concert" inverseName="artists" inverseEntity="Concert"/>
+    </entity>
+    <entity name="Concert" representedClassName="Concert" syncable="YES">
+        <attribute name="city" optional="YES" attributeType="String"/>
+        <attribute name="concertDescription" optional="YES" attributeType="String"/>
+        <attribute name="concertType" optional="YES" attributeType="String"/>
+        <attribute name="date" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="friendsTags" optional="YES" attributeType="String"/>
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="setlistURL" optional="YES" attributeType="String"/>
+        <attribute name="state" optional="YES" attributeType="String"/>
+        <attribute name="venueName" optional="YES" attributeType="String"/>
+        <relationship name="artists" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="Artist" inverseName="concert" inverseEntity="Artist"/>
+        <relationship name="photos" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ConcertPhoto" inverseName="concerts" inverseEntity="ConcertPhoto"/>
+    </entity>
+    <entity name="ConcertPhoto" representedClassName="ConcertPhoto" syncable="YES">
+        <attribute name="dateAdded" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isVideo" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="photoIdentifier" optional="YES" attributeType="String"/>
+        <relationship name="concerts" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Concert" inverseName="photos" inverseEntity="Concert"/>
+    </entity>
+</model>
