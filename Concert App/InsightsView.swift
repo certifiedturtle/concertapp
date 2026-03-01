@@ -21,42 +21,48 @@ struct InsightsView: View {
                             title: "Total Concerts",
                             value: "\(viewModel.totalConcerts)",
                             icon: "music.note.list",
-                            color: .blue
+                            color: .blue,
+                            destination: nil // Not tappable
                         )
                         
                         StatCard(
                             title: "Total Festivals",
                             value: "\(viewModel.totalFestivals)",
                             icon: "tent.fill",
-                            color: .orange
+                            color: .orange,
+                            destination: AnyView(FestivalListView())
                         )
                         
                         StatCard(
                             title: "Unique Artists",
                             value: "\(viewModel.totalUniqueArtists)",
                             icon: "person.2.fill",
-                            color: .purple
+                            color: .purple,
+                            destination: AnyView(InsightsArtistListView())
                         )
                         
                         StatCard(
                             title: "Unique Venues",
                             value: "\(viewModel.totalUniqueVenues)",
                             icon: "building.2.fill",
-                            color: .brown
+                            color: .brown,
+                            destination: AnyView(VenueListView())
                         )
                         
                         StatCard(
                             title: "Unique Cities",
                             value: "\(viewModel.totalUniqueCities)",
                             icon: "map.fill",
-                            color: .green
+                            color: .green,
+                            destination: AnyView(CityListView())
                         )
                         
                         StatCard(
                             title: "Concerts This Year",
                             value: "\(viewModel.concertsThisYear)",
                             icon: "calendar",
-                            color: .red
+                            color: .red,
+                            destination: AnyView(ThisYearConcertsView())
                         )
                     }
                     .padding()
@@ -78,8 +84,31 @@ struct StatCard: View {
     let value: String
     let icon: String
     let color: Color
+    let destination: AnyView?
+    
+    private var isZero: Bool {
+        value == "0"
+    }
+    
+    private var isTappable: Bool {
+        destination != nil && !isZero
+    }
     
     var body: some View {
+        Group {
+            if isTappable, let destination = destination {
+                NavigationLink(destination: destination) {
+                    cardContent
+                }
+                .buttonStyle(.plain)
+            } else {
+                cardContent
+                    .opacity(isZero ? 0.5 : 1.0)
+            }
+        }
+    }
+    
+    private var cardContent: some View {
         HStack(spacing: 16) {
             Image(systemName: icon)
                 .font(.title)
@@ -99,6 +128,12 @@ struct StatCard: View {
             }
             
             Spacer()
+            
+            if isTappable {
+                Image(systemName: "chevron.right")
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+            }
         }
         .padding()
         .background(Color(.systemBackground))
