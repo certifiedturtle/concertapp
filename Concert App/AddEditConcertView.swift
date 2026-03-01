@@ -27,6 +27,7 @@ struct AddEditConcertView: View {
     @State private var selectedYear = Calendar.current.component(.year, from: Date())
     @State private var selectedMonth = Calendar.current.component(.month, from: Date())
     @State private var venueName = ""
+    @State private var festivalName = ""
     @State private var city = ""
     @State private var state = ""
     @State private var concertDescription = ""
@@ -61,6 +62,7 @@ struct AddEditConcertView: View {
                         HStack {
                             TextField("Artist Name", text: $artists[index].name)
                             
+                            // Only show headliner toggle for standard concerts with multiple artists
                             if concertType == "standard" && artists.count > 1 {
                                 Toggle("Headliner", isOn: $artists[index].isHeadliner)
                                     .labelsHidden()
@@ -78,7 +80,9 @@ struct AddEditConcertView: View {
                     }
                     
                     Button {
-                        artists.append(("", false))
+                        // For festivals, all artists default to non-headliner
+                        let isHeadliner = concertType == "standard" ? false : false
+                        artists.append(("", isHeadliner))
                     } label: {
                         Label("Add Artist", systemImage: "plus.circle.fill")
                     }
@@ -98,7 +102,13 @@ struct AddEditConcertView: View {
                     }
                     .animation(.easeInOut, value: dateEntryMode)
                     
-                    TextField("Venue Name", text: $venueName)
+                    // Show festival name for festivals, venue name for standard concerts
+                    if concertType == "festival" {
+                        TextField("Festival Name", text: $festivalName)
+                            .autocorrectionDisabled()
+                    } else {
+                        TextField("Venue Name", text: $venueName)
+                    }
                     
                     TextField("City", text: $city)
                     
@@ -256,7 +266,9 @@ struct AddEditConcertView: View {
     // MARK: - Helpers
     
     private var isValid: Bool {
-        !venueName.isEmpty && artists.contains(where: { !$0.name.isEmpty })
+        let hasValidName = concertType == "festival" ? !festivalName.isEmpty : !venueName.isEmpty
+        let hasAtLeastOneArtist = artists.contains(where: { !$0.name.isEmpty })
+        return hasValidName && hasAtLeastOneArtist
     }
     
     private func monthName(for month: Int) -> String {
@@ -287,6 +299,7 @@ struct AddEditConcertView: View {
         selectedMonth = calendar.component(.month, from: concert.wrappedDate)
         
         venueName = concert.wrappedVenueName
+        festivalName = concert.wrappedFestivalName
         city = concert.wrappedCity
         state = concert.wrappedState
         concertDescription = concert.concertDescription ?? ""
@@ -332,6 +345,7 @@ struct AddEditConcertView: View {
                     date: finalDate,
                     dateGranularity: finalGranularity,
                     venueName: venueName,
+                    festivalName: festivalName,
                     city: city,
                     state: state,
                     description: concertDescription,
@@ -345,6 +359,7 @@ struct AddEditConcertView: View {
                     date: finalDate,
                     dateGranularity: finalGranularity,
                     venueName: venueName,
+                    festivalName: festivalName,
                     city: city,
                     state: state,
                     description: concertDescription,

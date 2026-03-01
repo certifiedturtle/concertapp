@@ -12,6 +12,7 @@
         <attribute name="concertType" optional="YES" attributeType="String"/>
         <attribute name="date" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="dateGranularity" optional="YES" attributeType="String"/>
+        <attribute name="festivalName" optional="YES" attributeType="String"/>
         <attribute name="friendsTags" optional="YES" attributeType="String"/>
         <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="setlistURL" optional="YES" attributeType="String"/>

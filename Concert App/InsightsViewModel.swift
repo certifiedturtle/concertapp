@@ -12,6 +12,7 @@ import Combine
 @MainActor
 class InsightsViewModel: ObservableObject {
     @Published var totalConcerts: Int = 0
+    @Published var totalFestivals: Int = 0
     @Published var totalUniqueArtists: Int = 0
     @Published var totalUniqueVenues: Int = 0
     @Published var totalUniqueCities: Int = 0
@@ -25,6 +26,7 @@ class InsightsViewModel: ObservableObject {
     
     func calculateInsights() {
         totalConcerts = fetchTotalConcerts()
+        totalFestivals = fetchTotalFestivals()
         totalUniqueArtists = fetchUniqueArtists()
         totalUniqueVenues = fetchUniqueVenues()
         totalUniqueCities = fetchUniqueCities()
@@ -33,6 +35,12 @@ class InsightsViewModel: ObservableObject {
     
     private func fetchTotalConcerts() -> Int {
         let request = Concert.fetchRequest()
+        return (try? viewContext.count(for: request)) ?? 0
+    }
+    
+    private func fetchTotalFestivals() -> Int {
+        let request = Concert.fetchRequest()
+        request.predicate = NSPredicate(format: "concertType == %@", "festival")
         return (try? viewContext.count(for: request)) ?? 0
     }
     

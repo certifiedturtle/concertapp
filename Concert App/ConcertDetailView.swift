@@ -28,14 +28,15 @@ struct ConcertDetailView: View {
                 // Header
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
-                        Text(concert.primaryArtistName)
+                        // For festivals, show festival name + year; for standard concerts, show primary artist
+                        Text(concert.isFestival ? concert.festivalDisplayName : concert.primaryArtistName)
                             .font(.title)
                             .fontWeight(.bold)
                         
                         Spacer()
                         
                         if concert.isFestival {
-                            Label("Festival", systemImage: "star.circle.fill")
+                            Label("Festival", systemImage: "tent.fill")
                                 .font(.caption)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
@@ -53,18 +54,30 @@ struct ConcertDetailView: View {
                 
                 Divider()
                 
-                // Venue Details
-                VStack(alignment: .leading, spacing: 12) {
-                    Label(concert.wrappedVenueName, systemImage: "building.2.fill")
-                        .font(.headline)
-                    
+                // Venue Details (only for standard concerts) or Location (for festivals)
+                if concert.isFestival {
+                    // For festivals, just show location
                     if !concert.wrappedCity.isEmpty {
-                        Label("\(concert.wrappedCity), \(concert.wrappedState)", systemImage: "location.fill")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                        VStack(alignment: .leading, spacing: 12) {
+                            Label("\(concert.wrappedCity), \(concert.wrappedState)", systemImage: "location.fill")
+                                .font(.headline)
+                        }
+                        .padding(.horizontal)
                     }
+                } else {
+                    // For standard concerts, show venue + location
+                    VStack(alignment: .leading, spacing: 12) {
+                        Label(concert.wrappedVenueName, systemImage: "building.2.fill")
+                            .font(.headline)
+                        
+                        if !concert.wrappedCity.isEmpty {
+                            Label("\(concert.wrappedCity), \(concert.wrappedState)", systemImage: "location.fill")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .padding(.horizontal)
                 }
-                .padding(.horizontal)
                 
                 // Artists
                 if concert.artistsArray.count > 1 {
@@ -76,12 +89,20 @@ struct ConcertDetailView: View {
                         
                         ForEach(concert.artistsArray) { artist in
                             HStack {
-                                Image(systemName: artist.isHeadliner ? "star.fill" : "music.note")
-                                    .foregroundStyle(artist.isHeadliner ? .yellow : .secondary)
-                                    .frame(width: 20)
-                                
-                                Text(artist.wrappedName)
-                                    .font(artist.isHeadliner ? .body.weight(.semibold) : .body)
+                                // Only show headliner icons for standard concerts
+                                if concert.isFestival {
+                                    Image(systemName: "music.note")
+                                        .foregroundStyle(.secondary)
+                                        .frame(width: 20)
+                                    Text(artist.wrappedName)
+                                } else {
+                                    Image(systemName: artist.isHeadliner ? "star.fill" : "music.note")
+                                        .foregroundStyle(artist.isHeadliner ? .yellow : .secondary)
+                                        .frame(width: 20)
+                                    
+                                    Text(artist.wrappedName)
+                                        .font(artist.isHeadliner ? .body.weight(.semibold) : .body)
+                                }
                             }
                         }
                     }
