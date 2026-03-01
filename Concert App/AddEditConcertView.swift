@@ -8,6 +8,12 @@
 import SwiftUI
 import CoreData
 
+enum DateEntryMode {
+    case exactDate
+    case monthYear
+    case yearOnly
+}
+
 struct AddEditConcertView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @Environment(\.dismiss) private var dismiss
@@ -17,7 +23,7 @@ struct AddEditConcertView: View {
     let concert: Concert?
     
     @State private var date = Date()
-    @State private var dateGranularity = "full" // "full", "month", "year"
+    @State private var dateEntryMode: DateEntryMode = .exactDate
     @State private var selectedYear = Calendar.current.component(.year, from: Date())
     @State private var selectedMonth = Calendar.current.component(.month, from: Date())
     @State private var venueName = ""
@@ -79,41 +85,18 @@ struct AddEditConcertView: View {
                 }
                 
                 Section("Details") {
-                    // Date Granularity Picker
-                    Picker("Date Precision", selection: $dateGranularity) {
-                        Text("Exact Date").tag("full")
-                        Text("Month & Year").tag("month")
-                        Text("Year Only").tag("year")
-                    }
-                    .pickerStyle(.segmented)
-                    
-                    // Show appropriate date input based on granularity
-                    switch dateGranularity {
-                    case "full":
-                        DatePicker("Date", selection: $date, displayedComponents: .date)
-                    case "month":
-                        HStack {
-                            Picker("Month", selection: $selectedMonth) {
-                                ForEach(1...12, id: \.self) { month in
-                                    Text(monthName(for: month)).tag(month)
-                                }
-                            }
-                            Picker("Year", selection: $selectedYear) {
-                                ForEach((1960...2030).reversed(), id: \.self) { year in
-                                    Text(String(year)).tag(year)
-                                }
-                            }
+                    // Progressive disclosure date entry
+                    Group {
+                        switch dateEntryMode {
+                        case .exactDate:
+                            exactDatePicker
+                        case .monthYear:
+                            monthYearPickers
+                        case .yearOnly:
+                            yearOnlyPicker
                         }
-                    case "year":
-                        Picker("Year", selection: $selectedYear) {
-                            ForEach((1960...2030).reversed(), id: \.self) { year in
-                                Text(String(year)).tag(year)
-                            }
-                        }
-                        .pickerStyle(.wheel)
-                    default:
-                        EmptyView()
                     }
+                    .animation(.easeInOut, value: dateEntryMode)
                     
                     TextField("Venue Name", text: $venueName)
                     
@@ -128,7 +111,6 @@ struct AddEditConcertView: View {
                         .keyboardType(.URL)
                         .textInputAutocapitalization(.never)
                     
-                    // Show search button if setlist URL is empty
                     if setlistURL.isEmpty {
                         Button {
                             searchForSetlist()
@@ -176,6 +158,103 @@ struct AddEditConcertView: View {
         }
     }
     
+    // MARK: - Date Pickers
+    
+    @ViewBuilder
+    private var exactDatePicker: some View {
+        DatePicker("Date", selection: $date, displayedComponents: .date)
+        Button {
+            // Extract month/year from current date before switching
+            let calendar = Calendar.current
+            selectedMonth = calendar.component(.month, from: date)
+            selectedYear = calendar.component(.year, from: date)
+            withAnimation(.easeInOut) {
+                dateEntryMode = .monthYear
+            }
+        } label: {
+            HStack {
+                Image(systemName: "questionmark.circle")
+                    .font(.caption)
+                Text("Not sure of the exact date?")
+                    .font(.caption)
+            }
+            .foregroundStyle(.secondary)
+        }
+        .buttonStyle(.borderless)
+    }
+    
+    @ViewBuilder
+    private var monthYearPickers: some View {
+        HStack {
+            Picker("Month", selection: $selectedMonth) {
+                ForEach(1...12, id: \.self) { month in
+                    Text(monthName(for: month)).tag(month)
+                }
+            }
+            Picker("Year", selection: $selectedYear) {
+                ForEach((1960...2030).reversed(), id: \.self) { year in
+                    Text(String(year)).tag(year)
+                }
+            }
+        }
+        Button {
+            withAnimation(.easeInOut) {
+                dateEntryMode = .yearOnly
+            }
+        } label: {
+            HStack {
+                Image(systemName: "questionmark.circle")
+                    .font(.caption)
+                Text("Only know the year?")
+                    .font(.caption)
+            }
+            .foregroundStyle(.secondary)
+        }
+        .buttonStyle(.borderless)
+        
+        Button {
+            withAnimation(.easeInOut) {
+                dateEntryMode = .exactDate
+            }
+        } label: {
+            HStack {
+                Image(systemName: "arrow.left")
+                    .font(.caption)
+                Text("I know the exact date")
+                    .font(.caption)
+            }
+            .foregroundStyle(.blue)
+        }
+        .buttonStyle(.borderless)
+    }
+    
+    @ViewBuilder
+    private var yearOnlyPicker: some View {
+        Picker("Year", selection: $selectedYear) {
+            ForEach((1960...2030).reversed(), id: \.self) { year in
+                Text(String(year)).tag(year)
+            }
+        }
+        .pickerStyle(.wheel)
+        
+        Button {
+            withAnimation(.easeInOut) {
+                dateEntryMode = .monthYear
+            }
+        } label: {
+            HStack {
+                Image(systemName: "arrow.left")
+                    .font(.caption)
+                Text("I know the month too")
+                    .font(.caption)
+            }
+            .foregroundStyle(.blue)
+        }
+        .buttonStyle(.borderless)
+    }
+    
+    // MARK: - Helpers
+    
     private var isValid: Bool {
         !venueName.isEmpty && artists.contains(where: { !$0.name.isEmpty })
     }
@@ -189,7 +268,18 @@ struct AddEditConcertView: View {
         guard let concert = concert else { return }
         
         date = concert.wrappedDate
-        dateGranularity = concert.wrappedDateGranularity
+        
+        // Set UI mode based on stored granularity
+        switch concert.wrappedDateGranularity {
+        case "full":
+            dateEntryMode = .exactDate
+        case "month":
+            dateEntryMode = .monthYear
+        case "year":
+            dateEntryMode = .yearOnly
+        default:
+            dateEntryMode = .exactDate
+        }
         
         // Extract year and month from date
         let calendar = Calendar.current
@@ -212,36 +302,35 @@ struct AddEditConcertView: View {
         do {
             let filteredArtists = artists.filter { !$0.name.isEmpty }
             
-            // Construct date based on granularity
             let finalDate: Date
+            let finalGranularity: String
             let calendar = Calendar.current
             
-            switch dateGranularity {
-            case "full":
+            switch dateEntryMode {
+            case .exactDate:
                 finalDate = date
-            case "month":
-                // Create date as first day of selected month/year
+                finalGranularity = "full"
+            case .monthYear:
                 var components = DateComponents()
                 components.year = selectedYear
                 components.month = selectedMonth
                 components.day = 1
                 finalDate = calendar.date(from: components) ?? date
-            case "year":
-                // Create date as January 1 of selected year
+                finalGranularity = "month"
+            case .yearOnly:
                 var components = DateComponents()
                 components.year = selectedYear
                 components.month = 1
                 components.day = 1
                 finalDate = calendar.date(from: components) ?? date
-            default:
-                finalDate = date
+                finalGranularity = "year"
             }
             
             if let concert = concert {
                 try viewModel.updateConcert(
                     concert,
                     date: finalDate,
-                    dateGranularity: dateGranularity,
+                    dateGranularity: finalGranularity,
                     venueName: venueName,
                     city: city,
                     state: state,
@@ -254,7 +343,7 @@ struct AddEditConcertView: View {
             } else {
                 try viewModel.createConcert(
                     date: finalDate,
-                    dateGranularity: dateGranularity,
+                    dateGranularity: finalGranularity,
                     venueName: venueName,
                     city: city,
                     state: state,
@@ -274,9 +363,6 @@ struct AddEditConcertView: View {
     }
     
     private func searchForSetlist() {
-        // Build search query: "setlistfm [artist] [venue] [city, state] [date]"
-        
-        // Get primary artist (first headliner or first artist)
         let primaryArtist: String
         if let headliner = artists.first(where: { $0.isHeadliner && !$0.name.isEmpty }) {
             primaryArtist = headliner.name
@@ -288,16 +374,15 @@ struct AddEditConcertView: View {
         
         let venue = venueName.isEmpty ? "Unknown Venue" : venueName
         
-        // Format date based on granularity
         let dateString: String
         let dateFormatter = DateFormatter()
         let calendar = Calendar.current
         
-        switch dateGranularity {
-        case "full":
+        switch dateEntryMode {
+        case .exactDate:
             dateFormatter.dateStyle = .long
             dateString = dateFormatter.string(from: date)
-        case "month":
+        case .monthYear:
             dateFormatter.dateFormat = "MMMM yyyy"
             var components = DateComponents()
             components.year = selectedYear
@@ -305,17 +390,12 @@ struct AddEditConcertView: View {
             components.day = 1
             let tempDate = calendar.date(from: components) ?? date
             dateString = dateFormatter.string(from: tempDate)
-        case "year":
+        case .yearOnly:
             dateString = String(selectedYear)
-        default:
-            dateFormatter.dateStyle = .long
-            dateString = dateFormatter.string(from: date)
         }
         
-        // Build query components
         var queryComponents = ["setlistfm", primaryArtist, venue]
         
-        // Add city and state if available
         if !city.isEmpty && !state.isEmpty {
             queryComponents.append("\(city), \(state)")
         } else if !city.isEmpty {
@@ -326,7 +406,6 @@ struct AddEditConcertView: View {
         
         let query = queryComponents.joined(separator: " ")
         
-        // URL encode and open Safari with Google search
         if let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
            let url = URL(string: "https://www.google.com/search?q=\(encodedQuery)") {
             UIApplication.shared.open(url)
