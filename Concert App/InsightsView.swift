@@ -25,6 +25,13 @@ struct InsightsView: View {
                         )
                         
                         StatCard(
+                            title: "Total Festivals",
+                            value: "\(viewModel.totalFestivals)",
+                            icon: "tent.fill",
+                            color: .orange
+                        )
+                        
+                        StatCard(
                             title: "Unique Artists",
                             value: "\(viewModel.totalUniqueArtists)",
                             icon: "person.2.fill",
@@ -35,7 +42,7 @@ struct InsightsView: View {
                             title: "Unique Venues",
                             value: "\(viewModel.totalUniqueVenues)",
                             icon: "building.2.fill",
-                            color: .orange
+                            color: .brown
                         )
                         
                         StatCard(

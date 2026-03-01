@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7C6509D82F54DDAB0018FD11 /* FESTIVAL_CHANGES_SUMMARY.md in Resources */ = {isa = PBXBuildFile; fileRef = 7C6509D72F54DDAB0018FD11 /* FESTIVAL_CHANGES_SUMMARY.md */; };
 		7C8B593A2F5158A70040C01C /* ConcertApp.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 7C8B59382F5158A70040C01C /* ConcertApp.xcdatamodeld */; };
 		7C8B59432F51609B0040C01C /* ConcertApp.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 7C8B59412F51609B0040C01C /* ConcertApp.xcdatamodeld */; };
 		7C8B59452F51645D0040C01C /* SimplifiedAppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C8B59442F51645D0040C01C /* SimplifiedAppView.swift */; };
@@ -19,6 +20,7 @@
 
 /* Begin PBXFileReference section */
 		7C1C86EC2F516E1E00B482CE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		7C6509D72F54DDAB0018FD11 /* FESTIVAL_CHANGES_SUMMARY.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = FESTIVAL_CHANGES_SUMMARY.md; sourceTree = "<group>"; };
 		7C8B59062F5154060040C01C /* Concert App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Concert App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7C8B59392F5158A70040C01C /* Concert App .xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = "Concert App .xcdatamodel"; sourceTree = "<group>"; };
 		7C8B59422F51609B0040C01C /* ConcertApp.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = ConcertApp.xcdatamodel; sourceTree = "<group>"; };
@@ -63,6 +65,7 @@
 				7CDB16A92F520EAF002AD428 /* TESTING_GUIDE.md */,
 				7CDB16B12F5218EB002AD428 /* SEARCH_SETLIST_FEATURE.md */,
 				7CDB16B32F521EEA002AD428 /* FLEXIBLE_DATE_IMPLEMENTATION.md */,
+				7C6509D72F54DDAB0018FD11 /* FESTIVAL_CHANGES_SUMMARY.md */,
 			);
 			sourceTree = "<group>";
 		};
@@ -143,6 +146,7 @@
 				7CDB16B22F5218EB002AD428 /* SEARCH_SETLIST_FEATURE.md in Resources */,
 				7C8B59472F5166260040C01C /* fix_project.sh in Resources */,
 				7C8B59492F51663A0040C01C /* FINAL_FIX_INSTRUCTIONS.md in Resources */,
+				7C6509D82F54DDAB0018FD11 /* FESTIVAL_CHANGES_SUMMARY.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

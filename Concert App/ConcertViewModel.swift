@@ -25,6 +25,7 @@ class ConcertViewModel: ObservableObject {
         date: Date,
         dateGranularity: String,
         venueName: String,
+        festivalName: String,
         city: String,
         state: String,
         description: String,
@@ -38,6 +39,7 @@ class ConcertViewModel: ObservableObject {
         concert.date = date
         concert.dateGranularity = dateGranularity
         concert.venueName = venueName
+        concert.festivalName = festivalName
         concert.city = city
         concert.state = state
         concert.concertDescription = description
@@ -64,6 +66,7 @@ class ConcertViewModel: ObservableObject {
         date: Date,
         dateGranularity: String,
         venueName: String,
+        festivalName: String,
         city: String,
         state: String,
         description: String,
@@ -75,6 +78,7 @@ class ConcertViewModel: ObservableObject {
         concert.date = date
         concert.dateGranularity = dateGranularity
         concert.venueName = venueName
+        concert.festivalName = festivalName
         concert.city = city
         concert.state = state
         concert.concertDescription = description

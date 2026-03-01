@@ -18,6 +18,7 @@ extension Concert {
     @NSManaged public var date: Date?
     @NSManaged public var dateGranularity: String?
     @NSManaged public var venueName: String?
+    @NSManaged public var festivalName: String?
     @NSManaged public var city: String?
     @NSManaged public var state: String?
     @NSManaged public var concertDescription: String?
@@ -42,6 +43,10 @@ extension Concert {
     
     public var wrappedVenueName: String {
         venueName ?? "Unknown Venue"
+    }
+    
+    public var wrappedFestivalName: String {
+        festivalName ?? ""
     }
     
     public var wrappedCity: String {
@@ -86,6 +91,17 @@ extension Concert {
             return headliner.wrappedName
         }
         return artistsArray.first?.wrappedName ?? "Unknown Artist"
+    }
+    
+    // Festival name with year (e.g., "Coachella 2026")
+    public var festivalDisplayName: String {
+        guard isFestival, !wrappedFestivalName.isEmpty else {
+            return wrappedFestivalName
+        }
+        
+        let calendar = Calendar.current
+        let year = calendar.component(.year, from: wrappedDate)
+        return "\(wrappedFestivalName) \(year)"
     }
     
     public var displayDate: String {

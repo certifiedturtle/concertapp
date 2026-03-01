@@ -29,7 +29,9 @@ struct ArtistConcertsView: View {
     // Filter concerts that include this artist
     var artistConcerts: [Concert] {
         concerts.filter { concert in
-            concert.artistsArray.contains { $0.wrappedName == artistName }
+            concert.artistsArray.contains { 
+                $0.wrappedName.trimmingCharacters(in: .whitespacesAndNewlines) == artistName 
+            }
         }
     }
     
@@ -65,12 +67,14 @@ struct ArtistConcertsView: View {
 }
 
 struct ArtistConcertRowView: View {
-    let concert: Concert
+    @ObservedObject var concert: Concert
     let artistName: String
     
     // Determine the artist's role at this concert
     var artistRole: String {
-        guard let artist = concert.artistsArray.first(where: { $0.wrappedName == artistName }) else {
+        guard let artist = concert.artistsArray.first(where: { 
+            $0.wrappedName.trimmingCharacters(in: .whitespacesAndNewlines) == artistName 
+        }) else {
             return "Performed"
         }
         
@@ -99,7 +103,8 @@ struct ArtistConcertRowView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Text(concert.wrappedVenueName)
+                // For festivals, show festival name + year; for standard concerts, show venue
+                Text(concert.isFestival ? concert.festivalDisplayName : concert.wrappedVenueName)
                     .font(.headline)
                 
                 Spacer()
@@ -130,7 +135,9 @@ struct ArtistConcertRowView: View {
             
             // Show other artists if it's a multi-artist show
             if concert.artistsArray.count > 1 {
-                let otherArtists = concert.artistsArray.filter { $0.wrappedName != artistName }
+                let otherArtists = concert.artistsArray.filter { 
+                    $0.wrappedName.trimmingCharacters(in: .whitespacesAndNewlines) != artistName 
+                }
                 if !otherArtists.isEmpty {
                     Text("with \(otherArtists.map { $0.wrappedName }.joined(separator: ", "))")
                         .font(.caption)
