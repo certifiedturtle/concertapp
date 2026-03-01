@@ -39,6 +39,8 @@ struct AddEditConcertView: View {
     @State private var showingError = false
     @State private var errorMessage = ""
     
+    @FocusState private var focusedArtistIndex: Int?
+    
     let concertTypes = ["standard", "festival"]
     
     init(concert: Concert? = nil) {
@@ -61,6 +63,15 @@ struct AddEditConcertView: View {
                     ForEach(artists.indices, id: \.self) { index in
                         HStack {
                             TextField("Artist Name", text: $artists[index].name)
+                                .focused($focusedArtistIndex, equals: index)
+                                .onSubmit {
+                                    // When return is pressed, add a new artist row
+                                    let isHeadliner = concertType == "standard" ? false : false
+                                    artists.append(("", isHeadliner))
+                                    // Focus on the newly added field
+                                    focusedArtistIndex = artists.count - 1
+                                }
+                                .submitLabel(.return)
                             
                             // Only show headliner toggle for standard concerts with multiple artists
                             if concertType == "standard" && artists.count > 1 {
@@ -83,6 +94,8 @@ struct AddEditConcertView: View {
                         // For festivals, all artists default to non-headliner
                         let isHeadliner = concertType == "standard" ? false : false
                         artists.append(("", isHeadliner))
+                        // Focus on the newly added field
+                        focusedArtistIndex = artists.count - 1
                     } label: {
                         Label("Add Artist", systemImage: "plus.circle.fill")
                     }
